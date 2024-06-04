@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block currentPage %} Rezultate cautare {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <form action="/rezultategenerale" method="post" class="p-3 border rounded bg-light">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Schimba cautarea</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col">
+            {% for elem in lista_indivizi %}
+                <div class="individ p-3 mb-3 border rounded bg-light">
+                    <a href="{% url 'individ' elem.0 %}" class="text-decoration-none text-dark">
+                        {{elem.nume}} {{elem.init_tata}} {{elem.prenume}}, {{elem.functie}} la {{elem.institutie}}
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col text-center">
+            <form action="/menu" method="get">
+                <button type="submit" class="btn btn-secondary">Home</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

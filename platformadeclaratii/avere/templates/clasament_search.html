@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block currentPage %} Clasament {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <form action="/clasament_results" method="post" class="p-3 border rounded bg-light">
+                <p class="text-info">Toate campurile sunt optionale</p>
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Vezi clasament</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col text-center">
+            <form action="/menu" method="get">
+                <button type="submit" class="btn btn-secondary">Home</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

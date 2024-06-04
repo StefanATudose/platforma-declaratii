@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+
+{% block currentPage %} Profil Individ {% endblock %}
+
+{% block content %}
+    <h2>{{nume}} {{init_tata}} {{prenume}}, {{functie}} la {{institutie}}</h2>
+
+    <h3>Avere</h3>
+
+    {% if avere_personala == -1 %}
+        <h4>Nu a fost inca incarcata nicio declaratie de avere.</h4>
+
+    {% else %}
+        <h4>Avere personala de {{avere_personala}} EURO, conform declaratiei din {{an_ultima_avere}}</h4>
+        
+    {% endif %}
+
+    {% for an in ani_avere %}
+        <button class="avere-year-button"> {{an.0}} </button>
+
+    {% endfor %}
+    <div id = "avere-container">
+
+    </div>
+
+    <h3>Interese</h3>
+    {% for an in ani_interese %}
+        <button class="interese-year-button"> {{an.0}} </button>
+
+    {% endfor %}
+
+    <div id = "interese-container">
+
+    </div>
+
+    <form action="/menu" method="get">
+        <input type="submit" value="Home" />
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('.avere-year-button').click(function(){
+                var year = $(this).text();
+                $.ajax({
+                    url: '/get_year_data/{{titular_id}}/' + year.trim() + '/1',
+                    method: 'GET',
+                    success: function(response) {
+                        $('#avere-container').empty()
+                        if (response.data.teren.length != 0){
+                            $('#avere-container').append(
+                               ' <h2> Terenuri: </h2>')
+                            for (let x of response.data.teren ){
+                                $('#avere-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Tara: ${x['tara']}</p>`+
+                                    `<p> Judet: ${x['judet']} </p>` +
+                                    `<p> Localitatea: ${x['localitate']} </p>` +
+                                    `<p> Categoria: ${x['categorie']} </p>` +
+                                    `<p> Anul dobandirii: ${x['an_dobandire']} </p>` +
+                                    `<p> Suprafata in mp: ${x['suprafata']} </p>` +
+                                    `<p> Cota parte: ${x['cota_parte']} </p>` +
+                                    `<p> Modul de dobandire: ${x['mod_dobandire']} </p>` +
+                                    `<p> Proprietar(i): ${x['proprietar']} </p>` +
+                                    `<p> Avand o valoare estimativa de: ${x['val_estimata']} EURO </p>`) +
+                                `</div>`
+                            }
+                        }
+                        if (response.data.cladire.length != 0){
+                            $('#avere-container').append(
+                                ' <h2> Cladiri: </h2>')
+                            for (let x of response.data.cladire ){
+                                $('#avere-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Tara: ${x['tara']}</p>`+
+                                    `<p> Judet: ${x['judet']} </p>` +
+                                    `<p> Localitatea: ${x['localitate']} </p>` +
+                                    `<p> Categoria: ${x['categorie']} </p>` +
+                                    `<p> Anul dobandirii: ${x['an_dobandire']} </p>` +
+                                    `<p> Suprafata in mp: ${x['suprafata']} </p>` +
+                                    `<p> Cota parte: ${x['cota_parte']} </p>` +
+                                    `<p> Modul de dobandire: ${x['mod_dobandire']} </p>` +
+                                    `<p> Proprietar(i): ${x['proprietar']} </p>` +
+                                    `<p> Avand o valoare estimativa de: ${x['val_estimata']} EURO </p>`+
+                                `</div>`)
+                            }
+                        }
+                        if (response.data.mijloc_transport.length != 0){
+                            $('#avere-container').append(
+                                ' <h2> Automobile: </h2>')
+                            for (let x of response.data.mijloc_transport ){
+                                $('#avere-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Natura automobilului: ${x['natura']}</p>`+
+                                    `<p> Marca: ${x['marca']} </p>` +
+                                    `<p> Numarul de bucati: ${x['nr_bucati']} </p>` +
+                                    `<p> Anul fabricatiei: ${x['an_fabricatie']} </p>` +
+                                    `<p> Modul de dobandire: ${x['mod_dobandire']} </p>` +
+                                    `<p> Avand o valoare estimativa de: ${x['val_estimata']} EURO </p>`+
+                                `</div>`)
+                                }
+                        }
+                        if (response.data.bun_cultural.length != 0){
+                            $('#avere-container').append(
+                                ' <h2> Bunuri culturale: </h2>')
+                            for (let x of response.data.bun_cultural ){
+                                $('#avere-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Descrierea sumara a bunului: ${x['descriere_sumara']}</p>`+
+                                    `<p> Anul dobandirii: ${x['an_dobandire']} </p>` +
+                                    `<p> Valoarea in ${x['valoare_valuta']}: ${x['valoare_nr']} </p>` +
+                                `</div>`)
+                                }
+                        }
+                        if (response.data.bun_instrainat.length != 0) {
+                            $('#avere-container').append(
+                                ' <h2> Bunuri instrainate recent: </h2>')
+                            for (let x of response.data.bun_instrainat ){
+                                $('#avere-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Natura bunului: ${x['natura']}</p>`+
+                                    `<p> Data instrainarii: ${x['data']} </p>` +
+                                    `<p> Catre: ${x['persoana_catre']} </p>` +
+                                    `<p> Forma instrainarii: ${x['forma']} </p>` +
+                                    `<p> Valoarea in ${x['valoare_valuta']}: ${x['valoare_nr']} </p>` +
+                                `</div>`)
+                            }
+                        }
+                        if (response.data.activa_financiara_indirecta.length != 0){
+                            $('#avere-container').append(
+                               ' <h2> Active financiare indirecte: </h2>')
+                            for (let x of response.data.activa_financiara_indirecta ){
+                                $('#avere-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Institutia: ${x['institutie']}</p>`+
+                                    `<p> Tipul activei: ${x['tip']} </p>` +
+                                    `<p> Anul deschiderii: ${x['an']} </p>` +
+                                    `<p> Sold de ${x['sold']} ${x['valuta']} </p>` +
+                                `</div>`)
+                            }
+                        }
+                            
+                        if (response.data.activa_financiara_directa.length != 0){
+                            $('#avere-container').append(
+                               ' <h2> Active financiare directe: </h2>')
+                            for (let x of response.data.activa_financiara_directa ){
+                                $('#avere-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Emitent: ${x['emitent']}</p>`+
+                                    `<p> Tipul activei: ${x['tip']} </p>` +
+                                    `<p> Numarul de titluri: ${x['nr_sau_cota']} </p>` +
+                                    `<p> Valoarea in ${x['valoare_valuta']}: ${x['valoare_nr']} </p>` +
+                                `</div>`)
+                            }
+                        }
+                            
+                        if (response.data.alta_activa_financiara.length != 0){
+                            $('#avere-container').append(
+                               ' <h2> Alte active financiare: </h2>')
+                            for (let x of response.data.alta_activa_financiara ){
+                                $('#avere-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Descriere: ${x['descriere']}</p>`+
+                                    `<p> Valoarea in ${x['valoare']}: ${x['valuta']} </p>` +
+
+                                `</div>`)
+                            }
+                        } 
+                            
+                        if (response.data.datorie.length != 0){
+                            $('#avere-container').append(
+                               ' <h2> Datorii: </h2>')
+                            for (let x of response.data.datorie ){
+                                $('#avere-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Creditor: ${x['creditor']} </p>` +
+                                    `<p> Anul creatiei: ${x['an_creata']} </p>` +
+                                    `<p> Anul scadentei: ${x['an_scadenta']} </p>` +
+                                    `<p> Valoarea in ${x['valoare_valuta']}: ${x['valoare_nr']} </p>` +
+                                `</div>`)
+                            }
+                        } 
+                        if (response.data.ajutor.length != 0){
+                            $('#avere-container').append(
+                               ' <h2> Ajutoare/cadouri primite: </h2>')
+                            for (let x of response.data.ajutor ){
+                                if (x['realizator_tip'] == 0)
+                                    realizator = "titular"
+                                else if  (x['realizator_tip'] == 1)
+                                    realizator = "partener(a)"
+                                else if  (x['realizator_tip'] == 2)
+                                    realizator = "copil"
+                                $('#avere-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Realizat de: ${realizator}, ${x['realizator_nume']}</p>`+
+                                    `<p> Sursa: ${x['sursa']} </p>` +
+                                    `<p> Serviciu: ${x['serviciu_obiect']} </p>` +
+                                    `<p> Valoarea in ${x['venit_valuta']}: ${x['venit_nr']} </p>` +
+                                `</div>`)
+                            }
+                        } 
+                            
+                        if (response.data.venit.length != 0){
+                            $('#avere-container').append(
+                               ' <h2> Venit: </h2>')
+                            for (let x of response.data.venit ){
+                                if (x['realizator_tip'] == 0)
+                                    realizator = "titular"
+                                else if  (x['realizator_tip'] == 1)
+                                    realizator = "partener(a)"
+                                else if  (x['realizator_tip'] == 2)
+                                    realizator = "copil"
+                                $('#avere-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Tipul venitului: ${x['venit_tip']}</p>`+
+                                    `<p> Realizat de: ${realizator}, ${x['realizator_nume']}</p>`+
+                                    `<p> Sursa venitului: ${x['sursa']} </p>` +
+                                    `<p> Serviciul prestat: ${x['serviciu_obiect']} </p>` +
+                                    `<p> Valoarea in ${x['venit_valuta']}: ${x['venit_nr']} </p>` +
+                                `</div>`)
+                            }
+                        }
+                        
+                        if( $('#avere-container').is(':empty') ) {
+                            $('#avere-container').append(`<h2>Conform acestui document individul nu are nicio avere relevanta</h2>`)
+                        }
+                        
+                        $('#avere-container').append(`<a href = "{% get_media_prefix %}${response.data.doc.doc_id}.pdf" target="_blank">Sursa</a>`)
+                        
+                            
+                                
+                    },
+                    error: function(response) {
+                        $('#avere-container').html('<p>No data found for this year</p>');
+                    }
+                });
+            });
+            $('.interese-year-button').click(function(){
+                var year = $(this).text();
+                $.ajax({
+                    url: '/get_year_data/{{titular_id}}/' + year.trim() + '/2',
+                    method: 'GET',
+                    success: function(response) {
+                        $('#interese-container').empty()
+                        if (response.data.membru_non_stat.length != 0){
+                            $('#interese-container').append(
+                               ' <h2> Asociat sau membru in:  </h2>')
+                            for (let x of response.data.membru_non_stat ){
+                                $('#interese-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Unitatea: ${x['unitate']}</p>`+
+                                    `<p> Calitatea: ${x['calitate']} </p>` +
+                                    `<p> Nr. de actiuni: ${x['nr_parti_sociale']} </p>` +
+                                    `<p> Valoarea in ${x['valoare_valuta']}: ${x['valoare_nr']} </p>` +
+                                `</div>`)
+                            }
+                        }
+                        if (response.data.membru_stat.length != 0){
+                            $('#interese-container').append(
+                                ' <h2> Functii administrative </h2>')
+                            for (let x of response.data.membru_stat ){
+                                $('#interese-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                        `<p> Unitatea: ${x['unitate']}</p>`+
+                                        `<p> Calitatea: ${x['calitate']} </p>` +
+                                        `<p> Valoarea in ${x['valoare_valuta']}: ${x['valoare_nr']} </p>` +
+                                `</div>`)
+                            }
+                        }
+                        if (response.data.membru_sindicat.length != 0){
+                            $('#interese-container').append(
+                                ' <h2> Membru in sindicatele: </h2>')
+                            for (let x of response.data.membru_sindicat ){
+                                $('#interese-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Sindicatul si functia: ${x['functie']}</p>`+
+                                `</div>`)
+                                }
+                        }
+                        if (response.data.membru_partid.length != 0){
+                            $('#interese-container').append(
+                                ' <h2> Membru in partidele: </h2>')
+                            for (let x of response.data.membru_partid ){
+                                $('#interese-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Partidul si functia: ${x['functie']}</p>`+
+                                `</div>`)
+                                }
+                        }
+                        if (response.data.contract.length != 0) {
+                            $('#interese-container').append(
+                                ' <h2> Desfasurand contractele: </h2>')
+                            for (let x of response.data.contract ){
+                                if (x['tip_beneficiar'] == 0)
+                                    beneficiar = "titular"
+                                else if  (x['tip_beneficiar'] == 1)
+                                    beneficiar = "partener(a)"
+                                else if  (x['tip_beneficiar'] == 2)
+                                    beneficiar = "o ruda de gradul 1"
+                                else
+                                    beneficiar= "o organizatie"
+                                $('#interese-container').append(
+                                `<div class = 'p-3 mb-3 border rounded bg-light'>` +
+                                    `<p> Realizat de: ${beneficiar}, ${x['nume_beneficiar']}</p>`+
+                                    `<p> Institutie contractanta: ${x['institutie_contractanta']} </p>` +
+                                    `<p> Procedura de incredintare: ${x['procedura']} </p>` +
+                                    `<p> Tipul: ${x['tip_contract']} </p>` +
+                                    `<p> Data incheierii: ${x['data_incheiere']} </p>` +
+                                    `<p> Durata: ${x['durata']} </p>` +
+                                    `<p> Valoarea in ${x['valoare_valuta']}: ${x['valoare_nr']} </p>` +
+                                `</div>`)
+                            }
+                        }
+
+                        if( $('#interese-container').is(':empty') ) {
+                            $('#interese-container').append(`<h2>Conform acestui document individul nu are niciun interes relevant</h2>`)
+                        }                    
+
+                        $('#interese-container').append(`<a href = "{% get_media_prefix %}${response.data.doc.doc_id}.pdf" target="_blank">Sursa</a>`)
+                    },
+                    error: function(response) {
+                        $('#data-container').html('<p>No data found for this year</p>');
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

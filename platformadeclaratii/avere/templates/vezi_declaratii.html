@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block currentPage %} Cautare {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <form action="/rezultategenerale" method="post" class="p-3 border rounded bg-light">
+                <p class="text-info">All fields are optional, but at least one must be completed</p>
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Cauta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col text-center">
+            <form action="/menu" method="get">
+                <button type="submit" class="btn btn-secondary">Home</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

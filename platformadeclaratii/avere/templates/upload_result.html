@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block currentPage %} Rezultate upload {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h3>Ati incarcat {{ total }} documente, dintre care {{ tipuri_doc.0 }} scanate (nu au fost adaugate in baza de date),
+                {{ tipuri_doc.1 }} declaratii de avere, si {{ tipuri_doc.2 }} declaratii de interese
+            </h3>
+
+            {% if tipuri_doc.3 != 0 %}
+                <h4>{{ tipuri_doc.3 }} fisiere au fost documente valide, dar a aparut o eroare la procesarea acestora.
+                    Verificati errorLogs.txt
+                </h4>
+            {% endif %}
+
+            <ol>
+                {% for elem in tipuri_doc_list %}
+                    {% if elem.0 != 3 and elem.0 != 0 %}
+                        <li>{{ elem.1 }}</li>
+                    {% endif %}
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col text-center">
+            <form action="/menu" method="get">
+                <button type="submit" class="btn btn-secondary">Home</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

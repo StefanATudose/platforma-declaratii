@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block currentPage %} 
+    {% if functie == "" and institutie == "" %}
+        Clasament general
+    {% else %}
+        Clasament {{functie}} {{institutie}}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            {% for elem in lista_indivizi %}
+                {% with forloop.counter0 as idx %}
+                    <div class="individ p-3 mb-3 border rounded bg-light">
+                        <a href="{% url 'individ' elem.0 %}" class="text-decoration-none text-dark">
+                            {{idx|add:"1" }}. {{elem.nume}} {{elem.init_tata}} {{elem.prenume}}, {{elem.functie}} la {{elem.institutie}}, cu o avere de {{elem.avere_personala}} EURO
+                        </a>
+                    </div>
+                {% endwith %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col text-center">
+            <form action="/menu" method="get">
+                <button type="submit" class="btn btn-secondary">Home</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
