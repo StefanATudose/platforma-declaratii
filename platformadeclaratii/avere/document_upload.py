@@ -114,41 +114,42 @@ class DocumentUploadToDatabase():
             for table in tables:
                 header_bbox = table.header.bbox
                 header_color = DocumentUploadToDatabase.get_cell_color(page, header_bbox)
-                if table.header.names not in DocumentUploadToDatabase.header_list[tip-1]:
-                    if header_color == "bfbfbf":
-                        #display(table.to_pandas())
-                        
+
+                #daca headerele nu sunt in lista oficiala de headere a template-ului declaratiei
+                if table.header.names not in DocumentUploadToDatabase.header_list[tip-1]: 
+                    #cazul 2)
+                    #daca culoarea headerului tabelului curent este gri-ul mai inchis specific headerelor
+                    if header_color == "bfbfbf": 
                         if prev_header_incomplete:
                             prev_header_incomplete = False
                             col_number = 0
                             for col_name in table.header.names:
                                 if col_name != "":
                                     tables_df[-1].rename(columns = {tables_df[-1].columns[col_number]: tables_df[-1].columns[col_number] + "\n" + col_name}, inplace = True)
-                                    #tables_df[-1].columns[col_number] = tables_df[-1].columns[col_number] + "\n" + col_name
+                                    
                                 col_number = col_number + 1
                             table_new = table.to_pandas()
                             table_new.columns = tables_df[-1].columns
                             tables_df[-1] = pd.concat([tables_df[-1], table_new], ignore_index=True)
-                            #display(tables_df[-1])
+                            
                         else:
                             prev_header_incomplete = True
                             tables_df.append(table.to_pandas())
-                            #display(tables_df[-1])
                             
+                    #cazul 1)   
                     elif "" in table.header.names and table.header.names[0] not in DocumentUploadToDatabase.last_table_special_fields[tip-1]:
-                        #display(table.to_pandas())
+                        
                         col_number = 0
                         for col_name in table.header.names:
                             if col_name != "":
                                 tables_df[-1].iloc[-1, col_number] = tables_df[-1].iloc[-1, col_number] + "\n" + col_name
                             col_number = col_number + 1
-                        #print("ajuns")
+                        
                         table_new = table.to_pandas()
                         table_new.columns = tables_df[-1].columns
                         tables_df[-1] = pd.concat([tables_df[-1], table_new], ignore_index=True)
-                        #display(tables_df[-1])
-
-                    
+                        
+                    #cazurile 3 si 4)
                     else:
                         table_new = table.to_pandas()
                         table_new_header_df = pd.DataFrame(table_new.columns).T
@@ -156,9 +157,6 @@ class DocumentUploadToDatabase():
                         tables_df[-1] = pd.concat([tables_df[-1], table_new_header_df], axis=0, ignore_index=True)
                         table_new.columns = tables_df[-1].columns
                         tables_df[-1] = pd.concat([tables_df[-1], table_new], ignore_index=True)
-                        #display(tables_df[-1])
-
-                    
                     
                 else:
                     tables_df.append(table.to_pandas())
@@ -743,7 +741,7 @@ class DocumentUploadToDatabase():
                     an_ultima_declaratie = 1901
                 
 
-                existing_document = connection.execute(text(f"""select * from document where titular_id = '{current_titular_id}' and data = '{format_date}' and tip = '{doc_type}';"""))
+                existing_document = connection.execute(text(f"""select * from document where titular_id = '{current_titular_id}' and data = '{format_date}' and tip_doc = '{doc_type}';"""))
 
                 if existing_document.rowcount > 0:
                     return (doc_type, f"AVERE, DUPLICAT, {nume} {init_tata} {prenume}")
@@ -792,7 +790,7 @@ class DocumentUploadToDatabase():
                 else:
                     connection.execute(text(f"INSERT INTO TITULAR VALUES('{current_titular_id}', '{nume}', '{init_tata}', '{prenume}', '{functie}', '{institutie}', -1, 1901);"))
                 
-                existing_document = connection.execute(text(f"""select * from document where titular_id = '{current_titular_id}' and data = '{format_date}' and tip = '{doc_type}';"""))
+                existing_document = connection.execute(text(f"""select * from document where titular_id = '{current_titular_id}' and data = '{format_date}' and tip_doc = '{doc_type}';"""))
 
                 if existing_document.rowcount > 0:
                     return (doc_type, f"INTERESE, DUPLICAT, {nume} {init_tata} {prenume}")

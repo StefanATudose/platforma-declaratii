@@ -22,6 +22,9 @@
         <button class="avere-year-button"> {{an.0}} </button>
 
     {% endfor %}
+    <button class="evolutie_button"> Evolutie </button>
+
+
     <div id = "avere-container">
 
     </div>
@@ -50,6 +53,8 @@
                     method: 'GET',
                     success: function(response) {
                         $('#avere-container').empty()
+                        $('#avere-container').append(
+                               ` <h4> Avere personala indicata de documentul din ${year}: ${response.data.doc.avere_doc} EURO</h4>`)
                         if (response.data.teren.length != 0){
                             $('#avere-container').append(
                                ' <h2> Terenuri: </h2>')
@@ -322,10 +327,60 @@
                         $('#interese-container').append(`<a href = "{% get_media_prefix %}${response.data.doc.doc_id}.pdf" target="_blank">Sursa</a>`)
                     },
                     error: function(response) {
-                        $('#data-container').html('<p>No data found for this year</p>');
+                        $('#interese-container').html('<p>No data found for this year</p>');
                     }
                 });
             });
+
+            $('.evolutie_button').click(function(){
+                //var year = $(this).text();
+                $.ajax({
+                    url: '/get_graphs/{{titular_id}}',
+                    method: 'GET',
+                    success: function(response) {
+                        $('#avere-container').empty();
+                        if (response.graf_avere)
+                            $('#avere-container').append(
+                                `<p> ${response.graf_avere} </p>` );
+                        if (response.graf_terenuri_nr)
+                            $('#avere-container').append(
+                                `<p> ${response.graf_terenuri_nr} </p>` );
+                        if (response.graf_teren_mp2)
+                            $('#avere-container').append(
+                              `<p> ${response.graf_teren_mp2} </p>`  );
+                        if (response.graf_cladiri_nr)
+                            $('#avere-container').append(
+                                `<p> ${response.graf_cladiri_nr} </p>`  );
+                        if (response.graf_cladire_mp2)
+                            $('#avere-container').append(
+                               `<p> ${response.graf_cladire_mp2} </p>` );
+                        if (response.graf_MIJLOC_TRANSPORT_nr)
+                            $('#avere-container').append(
+                               `<p> ${response.graf_MIJLOC_TRANSPORT_nr} </p>` );
+                        if (response.graf_bun_cultural_nr)
+                            $('#avere-container').append(
+                               `<p> ${response.graf_bun_cultural_nr} </p>` );
+                        if (response.graf_activa_financiara_indirecta_nr)
+                            $('#avere-container').append(
+                              `<p> ${response.graf_activa_financiara_indirecta_nr} </p>` );
+                        if (response.graf_activa_financiara_directa_nr)
+                            $('#avere-container').append(
+                               `<p> ${response.graf_activa_financiara_directa_nr} </p>` );
+                        if (response.graf_alta_activa_financiara_nr)
+                            $('#avere-container').append(
+                                `<p> ${response.graf_alta_activa_financiara_nr} </p>` );
+                        if (response.graf_datorie_nr)
+                            $('#avere-container').append(
+                                `<p> ${response.graf_datorie_nr} </p>` );
+                        
+                                
+                    },
+                    error: function(response) {
+                        $('#avere-container').html('<p>Nu au fost gasite grafice pentru acest individ</p>');
+                    }
+                });
+            });
+            
         });
     </script>
 {% endblock %}

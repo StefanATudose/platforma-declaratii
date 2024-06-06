@@ -7,7 +7,9 @@ from .forms import FileFieldForm
 from .document_upload import DocumentUploadToDatabase
 from .forms import IndividForm, ClasamentForm
 from sqlalchemy import text
-
+import matplotlib.pyplot as plt
+from io import StringIO
+import numpy as np
 
 # class UploadFileForm(forms.Form):
 #     files = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))
@@ -116,10 +118,10 @@ def profil_individ(request, titular_id):
         individ = connection.execute(text(f"select * from titular where titular_id = '{titular_id}'")).first()
         ani_avere = connection.execute(text(
         f"""select YEAR(data) from titular t join document d
-        on t.titular_id = d.titular_id where d.tip = '1' and t.titular_id = '{titular_id}' order by data asc;"""))
+        on t.titular_id = d.titular_id where d.tip_doc = '1' and t.titular_id = '{titular_id}' order by data asc;"""))
         ani_interese = connection.execute(text(
         f"""select YEAR(data) from titular t join document d
-        on t.titular_id = d.titular_id where d.tip = '2' and t.titular_id = '{titular_id}' order by data asc;"""))
+        on t.titular_id = d.titular_id where d.tip_doc = '2' and t.titular_id = '{titular_id}' order by data asc;"""))
 
     return render(request, "profil_individ.html", {'nume': individ.nume, "init_tata": individ.init_tata, 'an_ultima_avere' : individ.an_ultima_declaratie,
                                                     'prenume': individ.prenume, "functie": individ.functie,
@@ -136,7 +138,7 @@ def get_year_data(request, titular_id, year, doc_type):
         f"""select * from titular t 
             join document d
             on t.titular_id = d.titular_id where t.titular_id = '{titular_id}'
-            and YEAR(d.data) = '{year}' and d.tip = '{doc_type}';""")).first()._asdict()
+            and YEAR(d.data) = '{year}' and d.tip_doc = '{doc_type}';""")).first()._asdict()
         doc_id = doc["doc_id"]
         
         if doc_type == 1: 
@@ -230,7 +232,158 @@ def get_year_data(request, titular_id, year, doc_type):
     logger.info(totalData)
     return JsonResponse({'data': totalData })
 
+def get_graphs(request, titular_id):
+    engine = DocumentUploadToDatabase.engine
+    logger = logging.getLogger("mylogger")
+    with engine.connect() as connection:
+        docs = connection.execute(text(
+            f"""select * from document d where d.titular_id = {titular_id} and d.tip_doc = '1';"""))
+        teren_cladire = connection.execute(text(
+            f"""select * from TEREN_CLADIRE tc
+                join document d
+                on tc.doc_id = d.doc_id
+                where d.titular_id = {titular_id} order by d.data asc;"""))
+        
+        teren_cladire = [elem for elem in teren_cladire]
+        teren = [elem._asdict() for elem in teren_cladire if elem.tip == 0]
+        cladire = [elem._asdict() for elem in teren_cladire if elem.tip == 1]
 
+
+        MIJLOC_TRANSPORT = connection.execute(text(
+        f"""select * from MIJLOC_TRANSPORT mt
+            join document d
+            on mt.doc_id = d.doc_id
+            where d.titular_id = '{titular_id}' order by d.data asc;"""))
+        
+        MIJLOC_TRANSPORT = [elem._asdict() for elem in MIJLOC_TRANSPORT]
+
+        bun_cultural = connection.execute(text(
+            f"""select * from BUN_CULTURAL bc
+                join document d
+                on bc.doc_id = d.doc_id
+                where d.titular_id = '{titular_id}' order by d.data asc;"""
+        ))
+        bun_cultural = [elem._asdict() for elem in bun_cultural]
+
+        activa_financiara_indirecta = connection.execute(text(
+            f"""select * from ACTIVA_FINANCIARA_INDIRECTA afi
+                join document d
+                on afi.doc_id = d.doc_id
+                where d.titular_id = '{titular_id}' order by d.data asc;"""
+        ))
+        activa_financiara_indirecta = [elem._asdict() for elem in activa_financiara_indirecta]
+
+        activa_financiara_directa = connection.execute(text(
+            f"""select * from ACTIVA_FINANCIARA_DIRECTA afd
+                join document d
+                on afd.doc_id = d.doc_id
+                where d.titular_id = '{titular_id}' order by d.data asc;"""
+        ))
+        activa_financiara_directa = [elem._asdict() for elem in activa_financiara_directa]
+
+        alta_activa_financiara = connection.execute(text(
+            f"""select * from ALTA_ACTIVA_FINANCIARA aaf
+                join document d
+                on aaf.doc_id = d.doc_id
+                where d.titular_id = '{titular_id}' order by d.data asc;"""
+        ))
+        alta_activa_financiara = [elem._asdict() for elem in alta_activa_financiara]
+
+        datorie = connection.execute(text(
+            f"""select * from DATORIE da
+                join document d
+                on da.doc_id = d.doc_id
+                where d.titular_id = '{titular_id}' order by d.data asc;"""
+        ))
+        datorie = [elem._asdict() for elem in datorie]
+
+    docs = [doc._asdict() for doc in docs]
+    averi = [doc["avere_doc"] for doc in docs]
+    years = [int(str(doc["data"])[:4]) for doc in docs]
+    fig = plt.figure()
+    plt.plot(years, averi)
+    plt.xlabel('Ani')
+    plt.xticks(years)
+    plt.ylabel('Euro')
+    plt.yticks(averi)
+    plt.title('Avere_personala')
+
+    imgdata = StringIO()
+    fig.savefig(imgdata, format='svg')
+    imgdata.seek(0)
+
+    graf_avere = imgdata.getvalue()
+
+    graf_terenuri_nr = get_plot_number_per_years(teren, 'Terenuri', 'Numar terenuri')
+    graf_cladiri_nr = get_plot_number_per_years(cladire, 'Cladiri', 'Numar cladiri')
+    graf_teren_mp2 = get_mp2_teren_cladire_per_year(teren, 'mp2', 'Suprafata terenuri')
+    graf_cladire_mp2 = get_mp2_teren_cladire_per_year(cladire, 'mp2', 'Suprafata cladiri')
+    graf_MIJLOC_TRANSPORT_nr = get_plot_number_per_years(MIJLOC_TRANSPORT, 'Automobile', 'Numar_terenuri')
+    graf_bun_cultural_nr = get_plot_number_per_years(bun_cultural, 'Bunuri culturale', 'Numar bunuri culturale')
+    graf_activa_financiara_indirecta_nr = get_plot_number_per_years(activa_financiara_indirecta, 'Active', 'Numar active financiare indirecte')
+    graf_activa_financiara_directa_nr = get_plot_number_per_years(activa_financiara_directa, 'Active', 'Numar active financiare directe')
+    graf_alta_activa_financiara_nr = get_plot_number_per_years(alta_activa_financiara, 'Active', 'Numar alte active financiare')
+    graf_datorie_nr = get_plot_number_per_years(datorie, 'Datorii', 'Numar datorii')
+
+
+    return JsonResponse({'graf_avere': graf_avere, 'graf_terenuri_nr': graf_terenuri_nr, 'graf_cladiri_nr': graf_cladiri_nr, 'graf_teren_mp2': graf_teren_mp2, 'graf_cladire_mp2': graf_cladire_mp2, 
+                        'graf_MIJLOC_TRANSPORT_nr': graf_MIJLOC_TRANSPORT_nr, 'graf_bun_cultural_nr': graf_bun_cultural_nr,
+                        'graf_activa_financiara_indirecta_nr': graf_activa_financiara_indirecta_nr, 'graf_activa_financiara_directa_nr': graf_activa_financiara_directa_nr,
+                        'graf_alta_activa_financiara_nr': graf_alta_activa_financiara_nr, "graf_datorie_nr": graf_datorie_nr})
+
+def get_mp2_teren_cladire_per_year(data, ce_plotez, titlu):
+    teren_per_ani = {}
+    for elem in data:
+        curr = int(str(elem["data"])[:4])
+        if curr not in teren_per_ani:
+            teren_per_ani[curr] = elem['suprafata']
+        else:
+            teren_per_ani[curr] += elem['suprafata']
+    
+    lists = sorted(teren_per_ani.items()) 
+
+    x, y = zip(*lists)
+
+    fig = plt.figure()
+    plt.plot(x, y)
+    plt.xlabel('Ani')
+    plt.ylabel(ce_plotez)
+    plt.xticks(x)
+    plt.yticks(y)
+    plt.title(titlu)
+
+    imgdata = StringIO()
+    fig.savefig(imgdata, format='svg')
+    imgdata.seek(0)
+    return imgdata.getvalue()
+
+def get_plot_number_per_years(data, ce_plotez, titlu):
+    teren_per_ani = {}
+    for elem in data:
+        curr = int(str(elem["data"])[:4])
+        if curr not in teren_per_ani:
+            teren_per_ani[curr] = 1
+        else:
+            teren_per_ani[curr] += 1
+
+    
+    lists = sorted(teren_per_ani.items()) 
+    if not lists:
+            return 
+    x, y = zip(*lists)
+
+    fig = plt.figure()
+    plt.plot(x, y)
+    plt.xlabel('Ani')
+    plt.ylabel(ce_plotez)
+    plt.xticks(x)
+    plt.yticks(y)
+    plt.title(titlu)
+
+    imgdata = StringIO()
+    fig.savefig(imgdata, format='svg')
+    imgdata.seek(0)
+    return imgdata.getvalue()
     
 def clasament_search(request):
     form = ClasamentForm

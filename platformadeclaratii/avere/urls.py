@@ -11,6 +11,7 @@ urlpatterns = [
     path("rezultategenerale", views.rezultate_generale, name="rezultategenerale"),
     path("individ/<int:titular_id>", views.profil_individ, name="individ"),
     path("get_year_data/<int:titular_id>/<int:year>/<int:doc_type>", views.get_year_data, name="get_year_data"),
+    path("get_graphs/<int:titular_id>", views.get_graphs, name="get_graphs"),
     path("clasament_search", views.clasament_search, name="clasament_search"),
     path("clasament_results", views.clasament_results, name="clasament_results"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
