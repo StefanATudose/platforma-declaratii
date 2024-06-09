@@ -23,7 +23,6 @@ class FileFormView(FormView):
     form_class = FileFieldForm
     template_name = "meniu.html" 
     success_url = "/upload_result" 
-    #logger = logging.getLogger("mylogger")
 
 
     def form_valid(self, form):
@@ -49,11 +48,9 @@ class FileFormView(FormView):
 
 def upload_result(request, tipuri_doc_list):
     counts = {i: 0 for i in range(4)}
-    logger = logging.getLogger("mylogger")
     for key, string in tipuri_doc_list:
         counts[key] += 1
-    logger.info(tipuri_doc_list)
-    logger.info(counts)        
+       
     total = counts[0] + counts[1] + counts[2] + counts[3]
 
     return render(request, 'upload_result.html', {'total': total, 'tipuri_doc': counts, 'tipuri_doc_list': tipuri_doc_list})
@@ -69,7 +66,6 @@ def vezi_declaratii(request):
     return render(request, "vezi_declaratii.html", {'form': form})
 
 def rezultate_generale(request):
-    logger = logging.getLogger("mylogger")
     
     if request.method == "POST":
         form = IndividForm(request.POST)
@@ -129,7 +125,6 @@ def profil_individ(request, titular_id):
                                                     'ani_interese': ani_interese, 'titular_id': titular_id})
 
 def get_year_data(request, titular_id, year, doc_type):
-    logger = logging.getLogger("mylogger")
     engine = DocumentUploadToDatabase.engine
     totalData = {}
          
@@ -229,12 +224,10 @@ def get_year_data(request, titular_id, year, doc_type):
             totalData = {'doc': doc, 'membru_non_stat': MEMBRU_NON_STAT, 'membru_stat': MEMBRU_STAT, 'membru_sindicat': MEMBRU_SINDICAT,
                 'membru_partid': MEMBRU_PARTID, 'contract': CONTRACT}
 
-    logger.info(totalData)
     return JsonResponse({'data': totalData })
 
 def get_graphs(request, titular_id):
     engine = DocumentUploadToDatabase.engine
-    logger = logging.getLogger("mylogger")
     with engine.connect() as connection:
         docs = connection.execute(text(
             f"""select * from document d where d.titular_id = {titular_id} and d.tip_doc = '1';"""))
@@ -306,6 +299,7 @@ def get_graphs(request, titular_id):
     plt.xticks(years)
     plt.ylabel('Euro')
     plt.yticks(averi)
+    plt.ticklabel_format(style='plain')
     plt.title('Avere_personala')
 
     imgdata = StringIO()
@@ -342,6 +336,8 @@ def get_mp2_teren_cladire_per_year(data, ce_plotez, titlu):
     
     lists = sorted(teren_per_ani.items()) 
 
+    if not lists:
+            return 
     x, y = zip(*lists)
 
     fig = plt.figure()
@@ -350,6 +346,7 @@ def get_mp2_teren_cladire_per_year(data, ce_plotez, titlu):
     plt.ylabel(ce_plotez)
     plt.xticks(x)
     plt.yticks(y)
+    plt.ticklabel_format(style='plain')
     plt.title(titlu)
 
     imgdata = StringIO()
@@ -378,6 +375,7 @@ def get_plot_number_per_years(data, ce_plotez, titlu):
     plt.ylabel(ce_plotez)
     plt.xticks(x)
     plt.yticks(y)
+    plt.ticklabel_format(style='plain')
     plt.title(titlu)
 
     imgdata = StringIO()
